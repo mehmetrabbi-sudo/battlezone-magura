@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BATTLEZONE MAGURA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Portrait Rotation Prompt Overlay (Mandatory for Force Landscape Mode) -->
+  <div id="portrait-warning">
+    <div class="rotate-card">
+      <div class="rotate-icon-container">
+        <svg class="phone-rotate-anim" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="#38bdf8" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Smartphone frame -->
+          <rect x="14" y="6" width="20" height="36" rx="4" ry="4" stroke="#38bdf8" />
+          <line x1="22" y1="37" x2="26" y2="37" stroke="#38bdf8" stroke-width="2.5" />
+          <!-- Circular rotation arrows -->
+          <path d="M 8 20 A 16 16 0 0 1 36 10" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="3 3" />
+          <path d="M 33 6 L 37 10 L 33 14" stroke="#f59e0b" stroke-width="2.5" fill="none" />
+          <path d="M 40 28 A 16 16 0 0 1 12 38" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="3 3" />
+          <path d="M 15 42 L 11 38 L 15 34" stroke="#f59e0b" stroke-width="2.5" fill="none" />
+        </svg>
+      </div>
+      <h2 class="rotate-title-bn">অনুগ্রহ করে ফোনটি ল্যান্ডস্কেপ করুন</h2>
+      <p class="rotate-title-en">Please rotate your phone to landscape</p>
+      <div class="rotate-badge">
+        <span class="badge-dot"></span> 16:9 Landscape FPS Viewport
+      </div>
+      <!-- Bypass / Continue Button for desktop or portrait testing -->
+      <button id="btn-portrait-dismiss" style="margin-top: 14px; padding: 7px 18px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #e0f2fe; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <span>চালিয়ে যান (Play Anyway)</span>
+        <span>→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 3D WebGL Canvas Container -->
+  <div id="webgl-container"></div>
+
+  <!-- Transparent Touch Area for Camera Look (Right half of screen) -->
+  <div id="look-zone"></div>
+
+  <!-- Damage Screen Flash Overlay (Red Vignette upon taking damage) -->
+  <div id="damage-overlay"></div>
+
+  <!-- Tactical HUD Layer -->
+  <div id="ui-overlay">
+    <!-- Top Bar: Tactical Player Health HUD & Combat Radar -->
+    <div class="top-bar">
+      <!-- Player Health HUD -->
+      <div class="player-health-hud" id="player-health-hud">
+        <div class="health-header">
+          <span class="health-icon">❤️</span>
+          <span class="health-label">HP</span>
+          <span class="health-digits" id="player-health-digits">100 / 100</span>
+        </div>
+        <div class="health-bar-track">
+          <div class="health-bar-fill" id="player-health-fill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Top Right: Tactical Mini-Map Radar -->
+      <div class="top-right">
+        <div class="minimap-wrapper">
+          <canvas id="minimap-canvas" width="90" height="90"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center FPS Tactical Reticle & Hitmarker -->
+    <div class="crosshair-wrapper">
+      <div class="crosshair">
+        <div class="crosshair-dot"></div>
+      </div>
+      <div class="hitmarker" id="hitmarker">
+        <div class="hm-line hm-tl"></div>
+        <div class="hm-line hm-tr"></div>
+        <div class="hm-line hm-bl"></div>
+        <div class="hm-line hm-br"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Controls: Left Virtual Joystick & Right Action Buttons -->
+    <div class="bottom-bar">
+      <!-- Left Virtual Joystick for FPS Movement -->
+      <div id="joystick-zone">
+        <div id="joystick-thumb"></div>
+      </div>
+
+      <!-- Right Tactical Cluster: Ammo HUD, Action Buttons, Reload & Large FIRE Button -->
+      <div class="right-controls-cluster">
+        <div class="combat-status-row">
+          <!-- Kills Counter HUD -->
+          <div class="kills-hud" id="kills-hud">
+            <span class="kills-icon">💀</span>
+            <span class="kills-text" id="kills-display">KILLS: 0</span>
+          </div>
+
+          <!-- Tactical Ammo HUD (30 / 120) -->
+          <div class="ammo-hud" id="ammo-hud">
+            <div class="ammo-weapon-tag">
+              <span class="weapon-name">BD-08 RIFLE</span>
+              <span class="weapon-cal">5.56MM</span>
+            </div>
+            <div class="ammo-digits">
+              <span class="ammo-mag" id="ammo-mag">30</span>
+              <span class="ammo-divider">/</span>
+              <span class="ammo-reserve" id="ammo-reserve">120</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons Row -->
+        <div class="action-buttons">
+          <!-- Sprint Button -->
+          <button class="btn-tactical" id="btn-sprint" title="Sprint">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-label">SPRINT</span>
+          </button>
+
+          <!-- Jump Button -->
+          <button class="btn-tactical" id="btn-jump" title="Jump">
+            <span class="btn-icon">▲</span>
+            <span class="btn-label">JUMP</span>
+          </button>
+
+          <!-- Reload Button -->
+          <button class="btn-tactical btn-reload" id="btn-reload" title="Reload">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-label">RELOAD</span>
+          </button>
+
+          <!-- Large Mobile FIRE Button -->
+          <button class="btn-tactical btn-fire" id="btn-fire" title="FIRE">
+            <span class="fire-bullet-icon">💥</span>
+            <span class="fire-text">FIRE</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="three.min.js"></script>
+  <script src="textures.js"></script>
+  <script src="world.js"></script>
+  <script src="abalpur_village.js"></script>
+  <script src="controls.js"></script>
+  <script src="weapon.js"></script>
+  <script src="enemy.js"></script>
+  <script src="main.js"></script>
+  <script>
+    // Dismiss portrait rotation warning
+    const dismissBtn = document.getElementById('btn-portrait-dismiss');
+    const portraitWarning = document.getElementById('portrait-warning');
+    if (dismissBtn && portraitWarning) {
+      dismissBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        portraitWarning.classList.add('dismissed');
+        portraitWarning.style.setProperty('display', 'none', 'important');
+        window.dispatchEvent(new Event('resize'));
+      });
+    }
+
+    // Handle activation messages from parent app
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'BATTLEZONE_ACTIVATE') {
+        window.dispatchEvent(new Event('resize'));
+      }
+    });
+  </script>
+</body>
+</html>
