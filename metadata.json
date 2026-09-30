@@ -1,0 +1,6 @@
+{
+  "name": "Battlezone Magura",
+  "description": "First-person mobile FPS shooter with authentic 3D Magura town, tactical military lobby, multiple game modes, and weapon combat.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
